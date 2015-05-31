@@ -6,4 +6,5 @@
   :main anemia.core
   :dependencies [[org.clojure/clojure "1.6.0"]
                  [org.clojure/java.jdbc "0.3.7"]
-                 [mysql/mysql-connector-java "5.1.6"]])
+                 [mysql/mysql-connector-java "5.1.6"]
+                 [pandect "0.5.2"]])
