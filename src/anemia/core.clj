@@ -57,15 +57,15 @@
     :date_completed (get-date-completed)
     :checksum (sha256/sha256 "Example")}))
 
-(defn insert-migration-record
+(defn- insert-migration-record
   [db migration]
   (sql/db-transaction* db (fn [trans_db]
                             (sql/insert! trans_db :anemia_migrations (build-migration-data migration)))))
 
-(defn delete-migration-record
+(defn- delete-migration-record
   [db migration]
   (sql/db-transaction* db (fn [trans_db]
-                            (sql/delete! trans_db :anemia_migrations ["checksum=?" (build-migration-data migration) :checksum]))))
+                            (sql/delete! trans_db :anemia_migrations ["checksum=?" ((build-migration-data migration) :checksum)]))))
 
 (map #(create-migration-table %) dbcoll)
 (map #(drop-migration-table %) dbcoll)
