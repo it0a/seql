@@ -1,14 +1,14 @@
 # anemia
 
-A Clojure library designed to ... well, that part is up to you.
+asynchronous schema migrations
 
 ## Usage
 
-FIXME
+unreleased.
 
 ## License
 
-Copyright © 2015 FIXME
+Copyright © 2015 it0a
 
 Distributed under the Eclipse Public License either version 1.0 or (at
 your option) any later version.
