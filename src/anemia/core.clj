@@ -2,11 +2,10 @@
   (:require [anemia.files :as migration-files])
   (:require [clojure.java.jdbc :as sql])
   (:require [clojure.set :as set])
+  (:require [clojure.data :as data])
   (:require [pandect.algo.sha256 :as sha256])
   (:import java.util.Date
            java.text.SimpleDateFormat))
-
-(def loaded-migrations (migration-files/load-migrations "migrations/migrations.clj"))
 
 (let [db-host "0.0.0.0"
       db-port 3306
@@ -72,14 +71,31 @@
                             (sql/delete! trans_db :anemia_migrations ["checksum=?" ((build-migration-data migration) :checksum)]))))
 
 (defn list-migrations
+  "Lists the migrations that have already been run against the database."
   [db]
-  (sql/query db "SELECT name, date_completed, checksum FROM anemia_migrations"))
+  (sql/query db "SELECT name, checksum FROM anemia_migrations"))
 
 (defn diff-migrations
+  "Returns the checksums of the migration list against the migrations that have already been run against the database."
   [db]
-  (set/difference (set (map second loaded-migrations))
-                  (set (map #(% :checksum) (list-migrations db)))))
+  (list-migrations db))
 
+(defn find-migrations-with-checksum-mismatch
+  "Returns the filenames of migrations with a checksum mismatch."
+  [db]
+  (let [db-migrations (list-migrations db)]
+    (map #(first %)
+         (filter #(> (count (second %)) 1)
+                 (group-by :name
+                           (set/union (set loaded-migrations) (set db-migrations)))))))
+
+(def loaded-migrations (migration-files/load-migrations "migrations/migrations.clj"))
+
+(defn check-migrations
+  [db]
+  (empty? (find-migrations-with-checksum-mismatch db)))
+
+(map check-migrations dbcoll)
 ;(map diff-migrations dbcoll)
 ;(map #(create-migration-table %) dbcoll)
 ;(map #(drop-migration-table %) dbcoll)
