@@ -51,7 +51,7 @@
 
 (defn build-migration-data
   [migration]
-  (assoc migration :date_completed (get-date-completed)))
+  (dissoc (assoc migration :date_completed (get-date-completed)) :content))
 
 (defn- insert-migration-record
   [db migration]
@@ -98,9 +98,11 @@
   [db]
   (let [migrations (map assoc-migration-content (find-migrations-to-run db))]
     (sql/db-transaction* db (fn [trans_db]
-                              (doseq [m migrations]
-                                (sql/db-do-commands trans_db (m :content))
-                                (insert-migration-record trans_db m))))))
+        (doseq [m migrations]
+            (println (str "Executing " (m :name) " (" (m :checksum) ")..."))
+            (sql/db-do-commands trans_db (m :content))
+            (insert-migration-record trans_db m)
+            (println (str "Execution of " (m :name) " (" (m :checksum) ") successful")))))))
 
 (defn run-migrations
   [dbcoll]
@@ -113,7 +115,5 @@
   [results]
   (filter #(= (second %) false) (zipmap dbcoll results)))
 
-(run-migrations dbcoll)
-
 (defn -main [& args]
-  (println "unreleased"))
+  (run-migrations dbcoll))
