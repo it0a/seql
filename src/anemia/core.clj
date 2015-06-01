@@ -8,16 +8,31 @@
            java.text.SimpleDateFormat)
   (:gen-class))
 
-(def dbcoll [{:classname "com.mysql.jdbc.Driver"
-              :subprotocol "mysql"
-              :subname (str "//" "0.0.0.0" ":" "3306" "/" "schemex")
-              :user "root"
-              :password "sriq@"}
-             {:classname "com.mysql.jdbc.Driver"
-              :subprotocol "mysql"
-              :subname (str "//" "0.0.0.0" ":" "3306" "/" "schemex2")
-              :user "root"
-              :password "sriq@"}])
+(def databases [{:classname "com.mysql.jdbc.Driver"
+                 :subprotocol "mysql"
+                 :subname (str "//" "0.0.0.0" ":" "3306" "/" "schemex")
+                 :user "root"
+                 :password "sriq@"}
+                {:classname "com.mysql.jdbc.Driver"
+                 :subprotocol "mysql"
+                 :subname (str "//" "0.0.0.0" ":" "3306" "/" "schemex2")
+                 :user "root"
+                 :password "sriq@"}
+                {:classname "com.mysql.jdbc.Driver"
+                 :subprotocol "mysql"
+                 :subname (str "//" "0.0.0.0" ":" "3306" "/" "schemex3")
+                 :user "root"
+                 :password "sriq@"}
+                {:classname "com.mysql.jdbc.Driver"
+                 :subprotocol "mysql"
+                 :subname (str "//" "0.0.0.0" ":" "3306" "/" "schemex4")
+                 :user "root"
+                 :password "sriq@"}
+                {:classname "com.mysql.jdbc.Driver"
+                 :subprotocol "mysql"
+                 :subname (str "//" "0.0.0.0" ":" "3306" "/" "schemex5")
+                 :user "root"
+                 :password "sriq@"}])
 
 (def loaded-migrations (migration-files/load-migrations "migrations/migrations.clj"))
 
@@ -39,11 +54,10 @@
 
 (defn create-migration-table [db]
   (if-not (migration-table-exists? db)
-    (sql/db-do-commands db
-     (sql/create-table-ddl :anemia_migrations [:name "VARCHAR(255)" "NOT NULL"]
-                                              [:date_completed "VARCHAR(32)" "NOT NULL"]
-                                              [:checksum "VARCHAR(64)" "NOT NULL"])
-     "CREATE UNIQUE INDEX anemia_migrations_name_idx ON anemia_migrations (name)")))
+    (sql/db-do-commands db (sql/create-table-ddl :anemia_migrations [:name "VARCHAR(255)" "NOT NULL"]
+                                               [:date_completed "VARCHAR(32)" "NOT NULL"]
+                                               [:checksum "VARCHAR(64)" "NOT NULL"])
+                         "CREATE UNIQUE INDEX anemia_migrations_name_idx ON anemia_migrations (name)")))
 
 (defn get-date-completed
   []
@@ -84,7 +98,10 @@
 (defn check-migrations
   "Returns true if the migrations will successfully run, false if they wont."
   [db]
-  (empty? (find-migrations-with-checksum-mismatch db)))
+  (let [results (find-migrations-with-checksum-mismatch db)]
+    (doseq [r results]
+      (println (str (db :subname) " => checksum mismatch in " r)))
+    (empty? results)))
 
 (defn find-migrations-to-run
   [db]
@@ -101,25 +118,29 @@
     (if (empty? migrations)
       (println (str (db :subname) " => Nothing to run..."))
       (sql/db-transaction* db (fn [trans_db]
-                                (doseq [m migrations]
-                                  (print (str (db :subname) " => " (m :name) " (" (m :checksum) ")..."))
-                                  (sql/db-do-commands trans_db (m :content))
-                                  (insert-migration-record trans_db m)
-                                  (print " OK")
-                                  (println "")))))))
+                                 (doseq [m migrations]
+                                   (print (str (db :subname) " => " (m :name) " (" (m :checksum) ")..."))
+                                   (sql/db-do-commands trans_db (m :content))
+                                   (insert-migration-record trans_db m)
+                                   (print " OK")
+                                   (println "")))))))
 
 (defn extract-invalid-check-results
-  [results]
+  [results dbcoll]
   (let [invalid-results (filter #(= (second %) false) (zipmap dbcoll results))]
-    (println invalid-results)
+    (doseq [r invalid-results]
+      (println (str ((first r) :subname) " => contains mismatched checksums.")))
+    (println "Taking no action.")
     (identity invalid-results)))
 
 (defn run-migrations
   [dbcoll]
+  (doseq [db dbcoll]
+    (create-migration-table db))
   (let [db-valid-results (map check-migrations dbcoll)]
     (if (every? true? db-valid-results)
       (doseq [db dbcoll] (run-new-migrations db))
-        (extract-invalid-check-results db-valid-results))))
+      (extract-invalid-check-results db-valid-results dbcoll))))
 
 (defn -main [& args]
-  (run-migrations dbcoll))
+  (run-migrations databases))
