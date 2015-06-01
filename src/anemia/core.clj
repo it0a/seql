@@ -7,20 +7,18 @@
   (:import java.util.Date
            java.text.SimpleDateFormat))
 
-(let [db-host "0.0.0.0"
-      db-port 3306
-      db-name "schemex"]
+(def dbcoll [{:classname "com.mysql.jdbc.Driver"
+              :subprotocol "mysql"
+              :subname (str "//" "0.0.0.0" ":" "3306" "/" "schemex")
+              :user "root"
+              :password "sriq@"}
+             {:classname "com.mysql.jdbc.Driver"
+              :subprotocol "mysql"
+              :subname (str "//" "0.0.0.0" ":" "3306" "/" "schemex2")
+              :user "root"
+              :password "sriq@"}])
 
-  (def dbcoll [{:classname "com.mysql.jdbc.Driver"
-                :subprotocol "mysql"
-                :subname (str "//" db-host ":" db-port "/" db-name)
-                :user "root"
-                :password "sriq@"}
-               {:classname "com.mysql.jdbc.Driver"
-                :subprotocol "mysql"
-                :subname (str "//" db-host ":" db-port "/" "schemex2")
-                :user "root"
-                :password "sriq@"}]))
+(def loaded-migrations (migration-files/load-migrations "migrations/migrations.clj"))
 
 (defn- list-table-meta-data [db]
   (-> (sql/get-connection db)
@@ -36,14 +34,11 @@
 
 (defn- drop-migration-table [db]
   (if (migration-table-exists? db)
-    (sql/db-do-commands
-     db
-     (sql/drop-table-ddl :anemia_migrations))))
+    (sql/db-do-commands db (sql/drop-table-ddl :anemia_migrations))))
 
 (defn create-migration-table [db]
   (if-not (migration-table-exists? db)
-    (sql/db-do-commands
-     db
+    (sql/db-do-commands db
      (sql/create-table-ddl :anemia_migrations [:name "VARCHAR(255)" "NOT NULL"]
                                               [:date_completed "VARCHAR(32)" "NOT NULL"]
                                               [:checksum "VARCHAR(64)" "NOT NULL"])
@@ -86,21 +81,34 @@
   (let [db-migrations (list-migrations db)]
     (map #(first %)
          (filter #(> (count (second %)) 1)
-                 (group-by :name
-                           (set/union (set loaded-migrations) (set db-migrations)))))))
-
-(def loaded-migrations (migration-files/load-migrations "migrations/migrations.clj"))
+                 (group-by :name (set/union (set loaded-migrations) (set db-migrations)))))))
 
 (defn check-migrations
+  "Returns true if the migrations will successfully run, false if they wont."
   [db]
   (empty? (find-migrations-with-checksum-mismatch db)))
 
-(map check-migrations dbcoll)
-;(map diff-migrations dbcoll)
-;(map #(create-migration-table %) dbcoll)
-;(map #(drop-migration-table %) dbcoll)
-;(map #(insert-migration-record % 1) dbcoll)
-;(map #(delete-migration-record % 1) dbcoll)
+(defn find-migrations-to-run
+  [db]
+  (let [db-migrations (list-migrations db)]
+    (set/difference (set loaded-migrations) (set db-migrations))))
+
+(defn run-new-migrations
+  [db]
+  (find-migrations-to-run db))
+
+(defn run-migrations
+  [dbcoll]
+  (let [db-valid-results (map check-migrations dbcoll)]
+    (if (every? true? db-valid-results)
+        (map run-new-migrations dbcoll)
+        (extract-invalid-check-results db-valid-results))))
+
+(defn extract-invalid-check-results
+  [results]
+  (filter #(= (second %) false) (zipmap dbcoll results)))
+
+(run-migrations dbcoll)
 
 (defn -main [& args]
   (println "unreleased"))
