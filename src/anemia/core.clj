@@ -5,7 +5,8 @@
   (:require [clojure.data :as data])
   (:require [pandect.algo.sha256 :as sha256])
   (:import java.util.Date
-           java.text.SimpleDateFormat))
+           java.text.SimpleDateFormat)
+  (:gen-class))
 
 (def dbcoll [{:classname "com.mysql.jdbc.Driver"
               :subprotocol "mysql"
@@ -97,23 +98,28 @@
 (defn run-new-migrations
   [db]
   (let [migrations (map assoc-migration-content (find-migrations-to-run db))]
-    (sql/db-transaction* db (fn [trans_db]
-        (doseq [m migrations]
-            (println (str "Executing " (m :name) " (" (m :checksum) ")..."))
-            (sql/db-do-commands trans_db (m :content))
-            (insert-migration-record trans_db m)
-            (println (str "Execution of " (m :name) " (" (m :checksum) ") successful")))))))
+    (if (empty? migrations)
+      (println (str (db :subname) " => Nothing to run..."))
+      (sql/db-transaction* db (fn [trans_db]
+                                (doseq [m migrations]
+                                  (print (str (db :subname) " => " (m :name) " (" (m :checksum) ")..."))
+                                  (sql/db-do-commands trans_db (m :content))
+                                  (insert-migration-record trans_db m)
+                                  (print " OK")
+                                  (println "")))))))
+
+(defn extract-invalid-check-results
+  [results]
+  (let [invalid-results (filter #(= (second %) false) (zipmap dbcoll results))]
+    (println invalid-results)
+    (identity invalid-results)))
 
 (defn run-migrations
   [dbcoll]
   (let [db-valid-results (map check-migrations dbcoll)]
     (if (every? true? db-valid-results)
-        (map run-new-migrations dbcoll)
+      (doseq [db dbcoll] (run-new-migrations db))
         (extract-invalid-check-results db-valid-results))))
-
-(defn extract-invalid-check-results
-  [results]
-  (filter #(= (second %) false) (zipmap dbcoll results)))
 
 (defn -main [& args]
   (run-migrations dbcoll))

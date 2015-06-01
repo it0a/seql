@@ -47,7 +47,7 @@
 
 (defn load-migration-content
   [filename]
-  (slurp filename))
+  (slurp (str "migrations/" filename)))
 
 ;(map load-migration-content (map #(str "migrations/" %) (keys (read-migrations (extract-migration-file-names
 ; (read-migration-file-list "migrations/migrations.clj"))))))
