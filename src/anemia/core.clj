@@ -51,14 +51,11 @@
 
 (defn build-migration-data
   [migration]
-  (identity {:name "Example"
-    :date_completed (get-date-completed)
-    :checksum (sha256/sha256 "Example")}))
+  (assoc migration :date_completed (get-date-completed)))
 
 (defn- insert-migration-record
   [db migration]
-  (sql/db-transaction* db (fn [trans_db]
-                            (sql/insert! trans_db :anemia_migrations (build-migration-data migration)))))
+  (sql/insert! db :anemia_migrations (build-migration-data migration)))
 
 (defn- delete-migration-record
   [db migration]
@@ -93,9 +90,17 @@
   (let [db-migrations (list-migrations db)]
     (set/difference (set loaded-migrations) (set db-migrations))))
 
+(defn assoc-migration-content
+  [migration]
+  (assoc migration :content (migration-files/load-migration-content (migration :name))))
+
 (defn run-new-migrations
   [db]
-  (find-migrations-to-run db))
+  (let [migrations (map assoc-migration-content (find-migrations-to-run db))]
+    (sql/db-transaction* db (fn [trans_db]
+                              (doseq [m migrations]
+                                (sql/db-do-commands trans_db (m :content))
+                                (insert-migration-record trans_db m))))))
 
 (defn run-migrations
   [dbcoll]
