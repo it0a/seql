@@ -1,8 +1,12 @@
 (ns anemia.core
+  (:require [anemia.files :as migration-files])
   (:require [clojure.java.jdbc :as sql])
+  (:require [clojure.set :as set])
   (:require [pandect.algo.sha256 :as sha256])
   (:import java.util.Date
            java.text.SimpleDateFormat))
+
+(def loaded-migrations (migration-files/load-migrations "migrations/migrations.clj"))
 
 (let [db-host "0.0.0.0"
       db-port 3306
@@ -67,12 +71,20 @@
   (sql/db-transaction* db (fn [trans_db]
                             (sql/delete! trans_db :anemia_migrations ["checksum=?" ((build-migration-data migration) :checksum)]))))
 
-(map #(create-migration-table %) dbcoll)
-(map #(drop-migration-table %) dbcoll)
-(map #(insert-migration-record % 1) dbcoll)
-(map #(delete-migration-record % 1) dbcoll)
+(defn list-migrations
+  [db]
+  (sql/query db "SELECT name, date_completed, checksum FROM anemia_migrations"))
+
+(defn diff-migrations
+  [db]
+  (set/difference (set (map second loaded-migrations))
+                  (set (map #(% :checksum) (list-migrations db)))))
+
+;(map diff-migrations dbcoll)
+;(map #(create-migration-table %) dbcoll)
+;(map #(drop-migration-table %) dbcoll)
+;(map #(insert-migration-record % 1) dbcoll)
+;(map #(delete-migration-record % 1) dbcoll)
 
 (defn -main [& args]
   (println "unreleased"))
-
-

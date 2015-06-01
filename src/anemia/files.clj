@@ -41,6 +41,10 @@
      (print-invalid-files invalid-files)
      (process-migration-files migration-files))))
 
+(defn load-migrations
+  [migrations-file]
+  (read-migrations (extract-migration-file-names (read-migration-file-list migrations-file))))
+
 (defn load-migration-content
   [filename]
   (slurp filename))
