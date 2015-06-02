@@ -1,9 +1,10 @@
 (ns seql.core
-  (:require [seql.files :as migration-files])
-  (:require [clojure.java.jdbc :as sql])
-  (:require [clojure.set :as set])
-  (:require [clojure.data :as data])
-  (:require [pandect.algo.sha256 :as sha256])
+  (:require [seql.files :as migration-files]
+            [clojure.java.jdbc :as sql]
+            [clojure.set :as set]
+            [clojure.data :as data]
+            [clojure.tools.cli :refer [parse-opts]]
+            [pandect.algo.sha256 :as sha256])
   (:import java.util.Date
            java.text.SimpleDateFormat)
   (:gen-class))
@@ -90,7 +91,7 @@
   [db]
   (let [migrations (map assoc-migration-content (find-migrations-to-run db))]
     (if (empty? migrations)
-      (println (str (db :subname) " => Nothing to run..."))
+      (println (str (db :subname) " => Up to date"))
       (sql/db-transaction* db (fn [trans_db]
                                  (doseq [m migrations]
                                    (print (str (db :subname) " => " (m :name) " (" (m :checksum) ")..."))
@@ -116,5 +117,21 @@
       (doseq [db dbcoll] (run-new-migrations db))
       (extract-invalid-check-results db-valid-results dbcoll))))
 
+(def cli-options
+  [["-h" "--help"]])
+
+(defn display-help
+  []
+  (println "Usage: seql [db-groups...]")
+  (println "Runs all migrations listed in migrations/migrations.clj")
+  (println "against specified db-groups from migrations/databases.clj"))
+
 (defn -main [& args]
-  (run-migrations (migration-files/load-database-group "default")))
+  (let [opt-map (parse-opts args cli-options)]
+    (if (= ((opt-map :options) :help) true)
+    (display-help)
+    (if (empty? (opt-map :arguments))
+      (println "no database groups")
+      (doseq [db-group (opt-map :arguments)]
+        (println (str "running migrations on database group '" db-group "'..."))
+        (run-migrations (migration-files/load-database-group db-group)))))))
