@@ -58,7 +58,7 @@ migrations/databases.clj
 
 Note that any properties specified in a `:databases` cell take precedence over the base properties.
 
-In other words, schema "example6" will connect with user "anotheruser" and password "anotherpassword" whereas schemas "example7", "example8", "example9", "example10" will all connect with user "root" and password "rootpass".
+In other words, `:schema "example6"` will connect with `:user "anotheruser"` and `:password "anotherpassword"`. whereas all other `:schema` will connect with `:user "root"` and `:password "rootpass"`.
 
 
 ## Usage
