@@ -77,6 +77,13 @@ With the above databases.clj, we can run all migrations specified in migrations.
 seql default another
 ```
 
+## TODOs
+
+* Ability to override same file name, different checksum conflicts
+* Rollback migrations
+* Error handling
+* Leiningen plugin
+
 ## Wiki
 
 See the [project wiki](https://github.com/it0a/seql/wiki) for more details.
