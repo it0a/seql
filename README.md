@@ -74,40 +74,12 @@ seql [db-groups...]
 With the above databases.clj, we can run all migrations specified in migrations.clj against the 'default' and 'another' groups:
 
 ```
-./seql default another
-running migrations on db-group 'default'...
-//0.0.0.0:3306/example => 0.0.1/1.sql (1aa7f420ae87538528dc1566d53afae8a14cce9b2313a676adec4f9f5d8aff3d)... OK
-//0.0.0.0:3306/example => 0.0.1/2.sql (53dc5e0a801c1ce6197f434d7ea67f4eaba38ae7b9aca19b74e5b256cbb9cc05)... OK
-//0.0.0.0:3306/example => 0.0.2/1.sql (3448126addae59ba2d03ea16763364b40bc025d4ed441ea1cd33fec3735b6836)... OK
-//0.0.0.0:3306/example2 => 0.0.1/1.sql (1aa7f420ae87538528dc1566d53afae8a14cce9b2313a676adec4f9f5d8aff3d)... OK
-//0.0.0.0:3306/example2 => 0.0.1/2.sql (53dc5e0a801c1ce6197f434d7ea67f4eaba38ae7b9aca19b74e5b256cbb9cc05)... OK
-//0.0.0.0:3306/example2 => 0.0.2/1.sql (3448126addae59ba2d03ea16763364b40bc025d4ed441ea1cd33fec3735b6836)... OK
-//0.0.0.0:3306/example3 => 0.0.1/1.sql (1aa7f420ae87538528dc1566d53afae8a14cce9b2313a676adec4f9f5d8aff3d)... OK
-//0.0.0.0:3306/example3 => 0.0.1/2.sql (53dc5e0a801c1ce6197f434d7ea67f4eaba38ae7b9aca19b74e5b256cbb9cc05)... OK
-//0.0.0.0:3306/example3 => 0.0.2/1.sql (3448126addae59ba2d03ea16763364b40bc025d4ed441ea1cd33fec3735b6836)... OK
-//0.0.0.0:3306/example4 => 0.0.1/1.sql (1aa7f420ae87538528dc1566d53afae8a14cce9b2313a676adec4f9f5d8aff3d)... OK
-//0.0.0.0:3306/example4 => 0.0.1/2.sql (53dc5e0a801c1ce6197f434d7ea67f4eaba38ae7b9aca19b74e5b256cbb9cc05)... OK
-//0.0.0.0:3306/example4 => 0.0.2/1.sql (3448126addae59ba2d03ea16763364b40bc025d4ed441ea1cd33fec3735b6836)... OK
-//0.0.0.0:3306/example5 => 0.0.1/1.sql (1aa7f420ae87538528dc1566d53afae8a14cce9b2313a676adec4f9f5d8aff3d)... OK
-//0.0.0.0:3306/example5 => 0.0.1/2.sql (53dc5e0a801c1ce6197f434d7ea67f4eaba38ae7b9aca19b74e5b256cbb9cc05)... OK
-//0.0.0.0:3306/example5 => 0.0.2/1.sql (3448126addae59ba2d03ea16763364b40bc025d4ed441ea1cd33fec3735b6836)... OK
-running migrations on db-group 'another'...
-//0.0.0.0:3306/example6 => 0.0.1/1.sql (1aa7f420ae87538528dc1566d53afae8a14cce9b2313a676adec4f9f5d8aff3d)... OK
-//0.0.0.0:3306/example6 => 0.0.1/2.sql (53dc5e0a801c1ce6197f434d7ea67f4eaba38ae7b9aca19b74e5b256cbb9cc05)... OK
-//0.0.0.0:3306/example6 => 0.0.2/1.sql (3448126addae59ba2d03ea16763364b40bc025d4ed441ea1cd33fec3735b6836)... OK
-//0.0.0.0:3306/example7 => 0.0.1/1.sql (1aa7f420ae87538528dc1566d53afae8a14cce9b2313a676adec4f9f5d8aff3d)... OK
-//0.0.0.0:3306/example7 => 0.0.1/2.sql (53dc5e0a801c1ce6197f434d7ea67f4eaba38ae7b9aca19b74e5b256cbb9cc05)... OK
-//0.0.0.0:3306/example7 => 0.0.2/1.sql (3448126addae59ba2d03ea16763364b40bc025d4ed441ea1cd33fec3735b6836)... OK
-//0.0.0.0:3306/example8 => 0.0.1/1.sql (1aa7f420ae87538528dc1566d53afae8a14cce9b2313a676adec4f9f5d8aff3d)... OK
-//0.0.0.0:3306/example8 => 0.0.1/2.sql (53dc5e0a801c1ce6197f434d7ea67f4eaba38ae7b9aca19b74e5b256cbb9cc05)... OK
-//0.0.0.0:3306/example8 => 0.0.2/1.sql (3448126addae59ba2d03ea16763364b40bc025d4ed441ea1cd33fec3735b6836)... OK
-//0.0.0.0:3306/example9 => 0.0.1/1.sql (1aa7f420ae87538528dc1566d53afae8a14cce9b2313a676adec4f9f5d8aff3d)... OK
-//0.0.0.0:3306/example9 => 0.0.1/2.sql (53dc5e0a801c1ce6197f434d7ea67f4eaba38ae7b9aca19b74e5b256cbb9cc05)... OK
-//0.0.0.0:3306/example9 => 0.0.2/1.sql (3448126addae59ba2d03ea16763364b40bc025d4ed441ea1cd33fec3735b6836)... OK
-//0.0.0.0:3306/example10 => 0.0.1/1.sql (1aa7f420ae87538528dc1566d53afae8a14cce9b2313a676adec4f9f5d8aff3d)... OK
-//0.0.0.0:3306/example10 => 0.0.1/2.sql (53dc5e0a801c1ce6197f434d7ea67f4eaba38ae7b9aca19b74e5b256cbb9cc05)... OK
-//0.0.0.0:3306/example10 => 0.0.2/1.sql (3448126addae59ba2d03ea16763364b40bc025d4ed441ea1cd33fec3735b6836)... OK
+seql default another
 ```
+
+## Wiki
+
+See the [project wiki](https://github.com/it0a/seql/wiki) for more details.
 
 ## License
 
