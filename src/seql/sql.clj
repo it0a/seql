@@ -1,4 +1,3 @@
-
 (ns seql.sql
   (:require [seql.files :as migration-files]
             [clojure.java.jdbc :as sql]

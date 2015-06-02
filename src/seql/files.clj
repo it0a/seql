@@ -11,7 +11,7 @@
 
 (defn extract-migration-file-names [migration-file-list]
   (vec (flatten (map (fn [key] (map #(str key "/" %) (migration-file-list key)))
-    (keys migration-file-list)))))
+                     (keys migration-file-list)))))
 
 (defn validate-migration-files
   [migration-files]
@@ -37,9 +37,9 @@
 (defn read-migrations
   [migration-files]
   (let [invalid-files (filter #(= (second %) false) (validate-migration-files migration-files))]
-   (if (> (count invalid-files) 0)
-     (print-invalid-files invalid-files)
-     (process-migration-files migration-files))))
+    (if (> (count invalid-files) 0)
+      (print-invalid-files invalid-files)
+      (process-migration-files migration-files))))
 
 (defn load-migrations
   [migrations-file]
@@ -63,10 +63,12 @@
 (defn convert-to-jdbc-spec
   [db-spec]
   (apply dissoc (assoc db-spec :subname
-         (str "//" (db-spec :host) ":" (db-spec :port) "/" (db-spec :schema))) [:host :port :schema]))
+                       (str "//" (db-spec :host) ":" (db-spec :port) "/" (db-spec :schema))) [:host :port :schema]))
 
 (defn load-database-group
   [db-group]
-  (map convert-to-jdbc-spec
-       (flatten-db-spec
-        ((load-databases-file "migrations/databases.clj") db-group))))
+  (let [loaded-databases ((load-databases-file "migrations/databases.clj") db-group)]
+    (if (empty? loaded-databases)
+      (println (str "No databases belong to db-group '" db-group "'"))
+      (map convert-to-jdbc-spec (flatten-db-spec loaded-databases)))))
+

@@ -57,5 +57,5 @@
       :else (if (empty? (opt-map :arguments))
         (println "no database groups")
         (doseq [db-group (opt-map :arguments)]
-          (println (str "running migrations on database group '" db-group "'..."))
+          (println (str "running migrations on db-group '" db-group "'..."))
           (sql/run-migrations (files/load-database-group db-group)))))))
