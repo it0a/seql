@@ -54,8 +54,6 @@
   (with-open [r (io/reader filename)]
     (read (PushbackReader. r))))
 
-(def databases ((load-databases-file "migrations/databases.clj") "default"))
-
 (defn flatten-db-spec
   "Flattens the :databases element into the base database specification."
   [db-spec]

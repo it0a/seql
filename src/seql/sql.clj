@@ -9,8 +9,6 @@
            java.text.SimpleDateFormat)
   (:gen-class))
 
-(def loaded-migrations (migration-files/load-migrations "migrations/migrations.clj"))
-
 (defn- list-table-meta-data [db]
   (-> (sql/get-connection db)
       .getMetaData
@@ -68,7 +66,7 @@
   (let [db-migrations (list-migrations db)]
     (map #(first %)
          (filter #(> (count (second %)) 1)
-                 (group-by :name (set/union (set loaded-migrations) (set db-migrations)))))))
+                 (group-by :name (set/union (set (migration-files/load-migrations "migrations/migrations.clj")) (set db-migrations)))))))
 
 (defn check-migrations
   "Returns true if the migrations will successfully run, false if they wont."
@@ -81,7 +79,7 @@
 (defn find-migrations-to-run
   [db]
   (let [db-migrations (list-migrations db)]
-    (set/difference (set loaded-migrations) (set db-migrations))))
+    (set/difference (set (migration-files/load-migrations "migrations/migrations.clj")) (set db-migrations))))
 
 (defn assoc-migration-content
   [migration]
