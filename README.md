@@ -1,6 +1,6 @@
-# anemia
+# seql
 
-asynchronous schema migrations
+schema migrations for the masses
 
 ## Usage
 
