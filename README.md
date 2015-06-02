@@ -14,26 +14,26 @@ Will output a binary at target/seql (Add this to your PATH)
 
 ## Configuration
 
-seql currently expects the following heiarchy:
+seql currently runs under the following heirarchy:
 ```
-./seql
-./migrations/migrations.clj
-./migrations/databases.clj
+seql
+migrations/migrations.clj
+migrations/databases.clj
 ```
 
-Sample migrations.clj:
+*migrations/migrations.clj*:
 ```clojure
 {"0.0.1" ["1.sql"
           "2.sql"]
  "0.0.2" ["1.sql"]}
 ```
 
-Sample databases.clj:
+*migrations/databases.clj*:
 ```clojure
 {"default" {:classname "com.mysql.jdbc.Driver"
             :subprotocol "mysql"
             :user "root"
-            :password "sriq@"
+            :password "rootpass"
             :host "0.0.0.0"
             :port "3306"
             :databases [{:schema "example"}
@@ -44,7 +44,7 @@ Sample databases.clj:
  "another" {:classname "com.mysql.jdbc.Driver"
             :subprotocol "mysql"
             :user "root"
-            :password "sriq@"
+            :password "rootpass"
             :host "0.0.0.0"
             :port "3306"
             :databases [{:schema   "example6"
@@ -55,6 +55,10 @@ Sample databases.clj:
                         {:schema "example9"}
                         {:schema "example10"}]}}
 ```
+
+Note that any properties specified in a `:databases` cell take precedence over the base properties.
+
+In other words, schema "example6" will connect with user "anotheruser" and password "anotherpassword" whereas schemas "example7", "example8", "example9", "example10" will all connect with user "root" and password "rootpass".
 
 
 ## Usage
