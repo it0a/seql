@@ -62,9 +62,7 @@ migrations/0.0.2/1.sql
                         {:schema "example10"}]}}
 ```
 
-Note that any properties specified in a `:databases` cell take precedence over the base properties.
-
-In other words, `:schema "example6"` will connect with `:user "anotheruser"` and `:password "anotherpassword"`. All other `:schema` will connect with `:user "root"` and `:password "rootpass"`.
+Note that `:schema "example6"` will connect with `:user "anotheruser"` and `:password "anotherpassword"`. All other `:schema` will connect with `:user "root"` and `:password "rootpass"`.
 
 
 ## Usage
