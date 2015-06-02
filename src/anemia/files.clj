@@ -57,6 +57,7 @@
 (def databases ((load-databases-file "migrations/databases.clj") "default"))
 
 (defn flatten-db-spec
+  "Flattens the :databases element into the base database specification."
   [db-spec]
   (let [base-spec (dissoc db-spec :databases)]
     (map #(conj base-spec %) (db-spec :databases))))
@@ -68,7 +69,6 @@
 
 (defn load-database-group
   [db-group]
-  (map convert-to-jdbc-spec (flatten-db-spec ((load-databases-file "migrations/databases.clj") db-group))))
-
-;(map load-migration-content (map #(str "migrations/" %) (keys (read-migrations (extract-migration-file-names
-; (read-migration-file-list "migrations/migrations.clj"))))))
+  (map convert-to-jdbc-spec
+       (flatten-db-spec
+        ((load-databases-file "migrations/databases.clj") db-group))))
