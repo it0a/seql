@@ -27,7 +27,7 @@
 
 (defn print-invalid-files
   [invalid-files]
-  (println "Invalid migrations defined:")
+  (println "invalid migrations defined:")
   (map #(println (first %)) invalid-files))
 
 (defn process-migration-files
@@ -48,6 +48,27 @@
 (defn load-migration-content
   [filename]
   (slurp (str "migrations/" filename)))
+
+(defn load-databases-file
+  [filename]
+  (with-open [r (io/reader filename)]
+    (read (PushbackReader. r))))
+
+(def databases ((load-databases-file "migrations/databases.clj") "default"))
+
+(defn flatten-db-spec
+  [db-spec]
+  (let [base-spec (dissoc db-spec :databases)]
+    (map #(conj base-spec %) (db-spec :databases))))
+
+(defn convert-to-jdbc-spec
+  [db-spec]
+  (apply dissoc (assoc db-spec :subname
+         (str "//" (db-spec :host) ":" (db-spec :port) "/" (db-spec :schema))) [:host :port :schema]))
+
+(defn load-database-group
+  [db-group]
+  (map convert-to-jdbc-spec (flatten-db-spec ((load-databases-file "migrations/databases.clj") db-group))))
 
 ;(map load-migration-content (map #(str "migrations/" %) (keys (read-migrations (extract-migration-file-names
 ; (read-migration-file-list "migrations/migrations.clj"))))))

@@ -143,4 +143,4 @@
       (extract-invalid-check-results db-valid-results dbcoll))))
 
 (defn -main [& args]
-  (run-migrations databases))
+  (run-migrations (migration-files/load-database-group "default")))
