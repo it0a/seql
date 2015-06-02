@@ -1,10 +1,73 @@
 # seql
 
-schema migrations for the masses
+migrations for the masses
+
+## Build
+
+With leiningen:
+```
+git clone https://github.com/it0a/seql && \
+cd seql && \
+lein bin
+```
+Will output a binary at target/seql (Add this to your PATH)
+
+## Configuration
+
+seql currently expects the following heiarchy:
+```
+./seql
+./migrations/migrations.clj
+./migrations/databases.clj
+```
+
+Sample migrations.clj:
+```
+{"0.0.1" ["1.sql"
+          "2.sql"]
+ "0.0.2" ["1.sql"]}
+```
+
+Sample databases.clj:
+```
+{"default" {:classname "com.mysql.jdbc.Driver"
+            :subprotocol "mysql"
+            :user "root"
+            :password "sriq@"
+            :host "0.0.0.0"
+            :port "3306"
+            :databases [{:schema "example"}
+                        {:schema "example2"}
+                        {:schema "example3"}
+                        {:schema "example4"}
+                        {:schema "example5"}]}
+ "another" {:classname "com.mysql.jdbc.Driver"
+            :subprotocol "mysql"
+            :user "root"
+            :password "sriq@"
+            :host "0.0.0.0"
+            :port "3306"
+            :databases [{:schema   "example6"
+                         :user     "anotheruser"
+                         :password "anotherpassword"}
+                        {:schema "example7"}
+                        {:schema "example8"}
+                        {:schema "example9"}
+                        {:schema "example10"}]}}
+```
+
 
 ## Usage
 
-unreleased.
+```
+seql [db-groups...]
+```
+
+With the above databases.clj, we can run all migrations specified in migrations.clj against the 'default' and 'another' groups:
+
+```
+seql default another
+```
 
 ## License
 
