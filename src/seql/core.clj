@@ -1,5 +1,5 @@
-(ns anemia.core
-  (:require [anemia.files :as migration-files])
+(ns seql.core
+  (:require [seql.files :as migration-files])
   (:require [clojure.java.jdbc :as sql])
   (:require [clojure.set :as set])
   (:require [clojure.data :as data])
@@ -7,32 +7,6 @@
   (:import java.util.Date
            java.text.SimpleDateFormat)
   (:gen-class))
-
-(def databases [{:classname "com.mysql.jdbc.Driver"
-                 :subprotocol "mysql"
-                 :subname (str "//" "0.0.0.0" ":" "3306" "/" "schemex")
-                 :user "root"
-                 :password "sriq@"}
-                {:classname "com.mysql.jdbc.Driver"
-                 :subprotocol "mysql"
-                 :subname (str "//" "0.0.0.0" ":" "3306" "/" "schemex2")
-                 :user "root"
-                 :password "sriq@"}
-                {:classname "com.mysql.jdbc.Driver"
-                 :subprotocol "mysql"
-                 :subname (str "//" "0.0.0.0" ":" "3306" "/" "schemex3")
-                 :user "root"
-                 :password "sriq@"}
-                {:classname "com.mysql.jdbc.Driver"
-                 :subprotocol "mysql"
-                 :subname (str "//" "0.0.0.0" ":" "3306" "/" "schemex4")
-                 :user "root"
-                 :password "sriq@"}
-                {:classname "com.mysql.jdbc.Driver"
-                 :subprotocol "mysql"
-                 :subname (str "//" "0.0.0.0" ":" "3306" "/" "schemex5")
-                 :user "root"
-                 :password "sriq@"}])
 
 (def loaded-migrations (migration-files/load-migrations "migrations/migrations.clj"))
 
@@ -46,18 +20,18 @@
   (map #(:table_name %) (list-table-meta-data db)))
 
 (defn- migration-table-exists? [db]
-  (not (empty? (filter #(= % "anemia_migrations") (list-table-names db)))))
+  (not (empty? (filter #(= % "seql_migrations") (list-table-names db)))))
 
 (defn- drop-migration-table [db]
   (if (migration-table-exists? db)
-    (sql/db-do-commands db (sql/drop-table-ddl :anemia_migrations))))
+    (sql/db-do-commands db (sql/drop-table-ddl :seql_migrations))))
 
 (defn create-migration-table [db]
   (if-not (migration-table-exists? db)
-    (sql/db-do-commands db (sql/create-table-ddl :anemia_migrations [:name "VARCHAR(255)" "NOT NULL"]
+    (sql/db-do-commands db (sql/create-table-ddl :seql_migrations [:name "VARCHAR(255)" "NOT NULL"]
                                                [:date_completed "VARCHAR(32)" "NOT NULL"]
                                                [:checksum "VARCHAR(64)" "NOT NULL"])
-                         "CREATE UNIQUE INDEX anemia_migrations_name_idx ON anemia_migrations (name)")))
+                         "CREATE UNIQUE INDEX seql_migrations_name_idx ON seql_migrations (name)")))
 
 (defn get-date-completed
   []
@@ -70,17 +44,17 @@
 
 (defn- insert-migration-record
   [db migration]
-  (sql/insert! db :anemia_migrations (build-migration-data migration)))
+  (sql/insert! db :seql_migrations (build-migration-data migration)))
 
 (defn- delete-migration-record
   [db migration]
   (sql/db-transaction* db (fn [trans_db]
-                            (sql/delete! trans_db :anemia_migrations ["checksum=?" ((build-migration-data migration) :checksum)]))))
+                            (sql/delete! trans_db :seql_migrations ["checksum=?" ((build-migration-data migration) :checksum)]))))
 
 (defn list-migrations
   "Lists the migrations that have already been run against the database."
   [db]
-  (sql/query db "SELECT name, checksum FROM anemia_migrations"))
+  (sql/query db "SELECT name, checksum FROM seql_migrations"))
 
 (defn diff-migrations
   "Returns the checksums of the migration list against the migrations that have already been run against the database."

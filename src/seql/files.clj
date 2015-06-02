@@ -1,4 +1,4 @@
-(ns anemia.files
+(ns seql.files
   (:require [clojure.java.io :as io]
             [clojure.string :as str])
   (:require [pandect.algo.sha256 :as sha256])
