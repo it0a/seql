@@ -28,9 +28,11 @@ migrations/databases.clj
  "0.0.2" ["1.sql"]}
 ```
 This defines three files that will run in the following order:
-* migrations/0.0.1/1.sql
-* migrations/0.0.1/2.sql
-* migrations/0.0.2/1.sql
+```
+migrations/0.0.1/1.sql
+migrations/0.0.1/2.sql
+migrations/0.0.2/1.sql
+```
 
 **migrations/databases.clj**:
 ```clojure
