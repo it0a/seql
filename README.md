@@ -21,14 +21,14 @@ migrations/migrations.clj
 migrations/databases.clj
 ```
 
-*migrations/migrations.clj*:
+**migrations/migrations.clj**:
 ```clojure
 {"0.0.1" ["1.sql"
           "2.sql"]
  "0.0.2" ["1.sql"]}
 ```
 
-*migrations/databases.clj*:
+**migrations/databases.clj**:
 ```clojure
 {"default" {:classname "com.mysql.jdbc.Driver"
             :subprotocol "mysql"
