@@ -5,7 +5,7 @@ migrations for the masses
 ## Build
 
 With leiningen:
-```
+```bash
 git clone https://github.com/it0a/seql && \
 cd seql && \
 lein bin
@@ -22,14 +22,14 @@ seql currently expects the following heiarchy:
 ```
 
 Sample migrations.clj:
-```
+```clojure
 {"0.0.1" ["1.sql"
           "2.sql"]
  "0.0.2" ["1.sql"]}
 ```
 
 Sample databases.clj:
-```
+```clojure
 {"default" {:classname "com.mysql.jdbc.Driver"
             :subprotocol "mysql"
             :user "root"
