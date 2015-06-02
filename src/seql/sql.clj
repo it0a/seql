@@ -2,6 +2,7 @@
   (:require [seql.files :as migration-files]
             [clojure.java.jdbc :as sql]
             [clojure.set :as set]
+            [clojure.string :as str]
             [clojure.data :as data]
             [pandect.algo.sha256 :as sha256])
   (:import java.util.Date
@@ -92,10 +93,11 @@
       (sql/db-transaction* db (fn [trans_db]
                                 (doseq [m migrations]
                                   (print (str (db :subname) " => " (m :name) " (" (m :checksum) ")..."))
-                                  (sql/db-do-commands trans_db (m :content))
-                                  (insert-migration-record trans_db m)
-                                  (print " OK")
-                                  (println "")))))))
+                                  (doseq [s (str/split (m :content ) #";")]
+                                    (sql/db-do-commands trans_db s))
+                                    (insert-migration-record trans_db m)
+                                    (print " OK")
+                                    (println "")))))))
 
 (defn extract-invalid-check-results
   [results dbcoll]
