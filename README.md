@@ -77,7 +77,7 @@ With the above databases.clj, we can run all migrations specified in migrations.
 seql default another
 ```
 
-## TODOs
+## TODO
 
 * Ability to override same file name, different checksum conflicts
 * Rollback migrations
