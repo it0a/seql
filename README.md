@@ -67,20 +67,37 @@ Note that `:schema "example6"` will connect with `:user "anotheruser"` and `:pas
 
 ## Usage
 
+### Running Migrations
+
 ```
 seql [db-groups...]
 ```
 
-With the above databases.clj, we can run all migrations specified in migrations.clj against the 'default' and 'another' groups:
-
+Using the above databases.clj:
 ```
 seql default another
 ```
+Will run migrations on all databases in the 'default' and 'another' groups.
+
+### Synchronizing Migrations
+
+To synchronize all migrations as having been run:
+
+```
+seql --sync [db-groups...]
+```
+
+**NOTE:** Doing this will also sync migrations with checksum mismatches that have already been run.
+
+TODO: --sync --file "filename"
+
+### Removing Migrations
+
+TODO: --remove --file "filename" [db-groups]
 
 ## TODO
 
-* Better parsing of sql files
-* Ability to override same file name, different checksum conflicts
+* --dry-run
 * Rollback migrations
 * Error handling
 * Leiningen plugin
