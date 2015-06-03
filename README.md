@@ -23,9 +23,9 @@ migrations/databases.clj
 
 **migrations/migrations.clj**:
 ```clojure
-{"0.0.1" ["1.sql"
-          "2.sql"]
- "0.0.2" ["1.sql"]}
+[["0.0.1" ["1.sql"
+           "2.sql"]]
+ ["0.0.2" ["1.sql"]]]
 ```
 This defines three files that will run in the following order:
 ```
@@ -79,6 +79,7 @@ seql default another
 
 ## TODO
 
+* Better parsing of sql files
 * Ability to override same file name, different checksum conflicts
 * Rollback migrations
 * Error handling
