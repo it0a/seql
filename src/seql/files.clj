@@ -9,9 +9,10 @@
   (with-open [r (io/reader filename)]
     (read (PushbackReader. r))))
 
-(defn extract-migration-file-names [migration-file-list]
-  (vec (flatten (map (fn [key] (map #(str key "/" %) (migration-file-list key)))
-                     (keys migration-file-list)))))
+(defn extract-migration-file-names
+  [migration-file-list]
+  (vec (flatten (map (fn [x] (map #(str (first x) "/" %) (rest x)))
+       (map flatten migration-file-list)))))
 
 (defn validate-migration-files
   [migration-files]

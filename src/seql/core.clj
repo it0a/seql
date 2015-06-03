@@ -18,7 +18,7 @@
 
 (defn display-sample-migration-file
   []
-  (pprint/pprint {"0.0.1" ["1.sql" "2.sql"] "0.0.2" ["1.sql"]}))
+  (pprint/pprint [["0.0.1" ["1.sql" "2.sql"]] ["0.0.2" ["1.sql"]]]))
 
 (defn display-sample-databases-file
   []
