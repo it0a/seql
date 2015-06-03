@@ -47,7 +47,8 @@
 
 (defn load-migration-content
   [filename]
-  (slurp (str "migrations/" filename)))
+  (str/split
+   (slurp (str "migrations/" filename)) #";\n"))
 
 (defn load-databases-file
   [filename]

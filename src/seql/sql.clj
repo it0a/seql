@@ -93,8 +93,8 @@
       (sql/db-transaction* db (fn [trans_db]
                                 (doseq [m migrations]
                                   (print (str (db :subname) " => " (m :name) " (" (m :checksum) ")..."))
-                                  (doseq [s (str/split (m :content ) #";")]
-                                    (sql/db-do-commands trans_db s))
+                                  (doseq [query (m :content )]
+                                    (sql/db-do-commands trans_db query))
                                     (insert-migration-record trans_db m)
                                     (print " OK")
                                     (println "")))))))
