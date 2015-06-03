@@ -7,7 +7,8 @@
   (:gen-class))
 
 (def cli-options
-  [["-g" "--generate" "Generate"]
+  [["-s" "--sync" "sync"]
+   ["-g" "--generate" "generate"]
    ["-h" "--help"]])
 
 (defn display-help
@@ -48,14 +49,21 @@
     (cond
       ((opt-map :options) :help) (display-help)
       ((opt-map :options) :generate)
-        (if (empty? (opt-map :arguments))
-            (println "Nothing specified to generate. (Ex: migration-file, databases-file)")
-            (doseq [gen-target (opt-map :arguments)]
-              (cond
-                (= gen-target "migration-file") (display-sample-migration-file)
-                (= gen-target "databases-file") (display-sample-databases-file))))
-      :else (if (empty? (opt-map :arguments))
-        (println "no database groups")
+      (if (empty? (opt-map :arguments))
+        (println "Nothing specified to generate. (Ex: migration-file, databases-file)")
+        (doseq [gen-target (opt-map :arguments)]
+          (cond
+            (= gen-target "migration-file") (display-sample-migration-file)
+            (= gen-target "databases-file") (display-sample-databases-file))))
+
+      ((opt-map :options) :sync)
+      (if (empty? (opt-map :arguments))
+        (println "no database groups to sync")
         (doseq [db-group (opt-map :arguments)]
-          (println (str "running migrations on db-group '" db-group "'..."))
-          (sql/run-migrations (files/load-database-group db-group)))))))
+          (println (str "synchonizing migrations on db-group '" db-group "'..."))
+          (sql/sync-migrations (files/load-database-group db-group))))
+      :else (if (empty? (opt-map :arguments))
+              (println "no database groups")
+              (doseq [db-group (opt-map :arguments)]
+                (println (str "running migrations on db-group '" db-group "'..."))
+                (sql/run-migrations (files/load-database-group db-group)))))))

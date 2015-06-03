@@ -95,9 +95,9 @@
                                   (print (str (db :subname) " => " (m :name) " (" (m :checksum) ")..."))
                                   (doseq [query (m :content )]
                                     (sql/db-do-commands trans_db query))
-                                    (insert-migration-record trans_db m)
-                                    (print " OK")
-                                    (println "")))))))
+                                  (insert-migration-record trans_db m)
+                                  (print " OK")
+                                  (println "")))))))
 
 (defn extract-invalid-check-results
   [results dbcoll]
@@ -107,11 +107,39 @@
     (println "Taking no action.")
     (identity invalid-results)))
 
+(defn preprocess-dbcoll
+  [dbcoll]
+  (doseq [db dbcoll] (create-migration-table db)))
+
 (defn run-migrations
   [dbcoll]
-  (doseq [db dbcoll]
-    (create-migration-table db))
+  (preprocess-dbcoll dbcoll)
   (let [db-valid-results (map check-migrations dbcoll)]
     (if (every? true? db-valid-results)
       (doseq [db dbcoll] (run-new-migrations db))
       (extract-invalid-check-results db-valid-results dbcoll))))
+
+(defn run-on-dbcoll
+  [dbcoll fun]
+  (doseq [db dbcoll]
+    (fun db)))
+
+(defn do-sync-migrations
+  [db]
+  (sql/db-transaction* db (fn [trans_db]
+    (doseq [m (find-migrations-with-checksum-mismatch trans_db)]
+      (sql/delete! trans_db :seql_migrations ["name = ?" m]))
+    (let [migrations (map assoc-migration-content (find-migrations-to-run trans_db))]
+      (if (empty? migrations)
+        (println (str (trans_db :subname) " => Up to date"))
+        (doseq [m migrations]
+      (print (str (trans_db :subname) " => " (m :name) " (" (m :checksum) ")..."))
+      (insert-migration-record trans_db m)
+      (print "OK")
+      (println (str ""))))))))
+
+(defn sync-migrations
+  [dbcoll]
+  (preprocess-dbcoll dbcoll)
+  (run-on-dbcoll dbcoll do-sync-migrations))
+
