@@ -78,8 +78,10 @@
 
 (defn find-migrations-to-run
   [db]
-  (let [db-migrations (list-migrations db)]
-    (set/difference (set (migration-files/load-migrations "migrations/migrations.clj")) (set db-migrations))))
+  (let [db-migrations (list-migrations db)
+        migration-files (migration-files/load-migrations "migrations/migrations.clj")]
+    (let [diff-set (set/difference (set migration-files) (set db-migrations))]
+      (reverse (filter #(contains? diff-set %) migration-files)))))
 
 (defn assoc-migration-content
   [migration]
