@@ -89,7 +89,6 @@
 
 (defn run-new-migrations
   [db]
-  (println (find-migrations-to-run db))
   (let [migrations (map assoc-migration-content (find-migrations-to-run db))]
     (if (empty? migrations)
       (println (str (db :subname) " => Up to date"))
