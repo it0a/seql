@@ -33,7 +33,7 @@
 
 (defn process-migration-files
   [migration-files]
-  (map #(assoc nil :name (first %) :checksum (second %)) (zipmap migration-files (map compute-checksum migration-files))))
+  (mapv #(assoc {} :name % :checksum (compute-checksum %)) migration-files))
 
 (defn read-migrations
   [migration-files]

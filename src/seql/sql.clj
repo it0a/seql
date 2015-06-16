@@ -81,7 +81,7 @@
   (let [db-migrations (list-migrations db)
         migration-files (migration-files/load-migrations "migrations/migrations.clj")]
     (let [diff-set (set/difference (set migration-files) (set db-migrations))]
-      (reverse (filter #(contains? diff-set %) migration-files)))))
+      (filterv #(contains? diff-set %) migration-files))))
 
 (defn assoc-migration-content
   [migration]
@@ -89,6 +89,7 @@
 
 (defn run-new-migrations
   [db]
+  (println (find-migrations-to-run db))
   (let [migrations (map assoc-migration-content (find-migrations-to-run db))]
     (if (empty? migrations)
       (println (str (db :subname) " => Up to date"))
