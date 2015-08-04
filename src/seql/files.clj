@@ -46,11 +46,58 @@
   [migrations-file]
   (read-migrations (extract-migration-file-names (read-migration-file-list migrations-file))))
 
+(def REGEX
+  #"(?:(['\"])(?:\\\\|\\\1|(?!\1).|\1\1)*\1|(?:(?<!\d)-)?\d+(?:\.\d+)?(?:[eE]-?\d+)?|\.\.|(?:\w+\.)*\w+|[<>=|]{2}|\S)")
+
+(defn digit? [c]
+  (re-find #"[0-9]" c))
+
+(defn letter? [c]
+  (re-find #"[a-zA-Z]" c))
+
+(defn asymbol? [c]
+  (re-find #"[\(\)\[\]!\.+-><=\?*]" c))
+
+(defn astring? [c]
+  (re-find #"[\"']" c))
+
+(defn what-type [token]
+  (let [c (subs token 0 1)]
+    (cond
+      (letter? c)  :word
+      (digit? c)   :number
+      (asymbol? c) :symbol
+      (astring? c) :string
+      :else (throw (IllegalArgumentException. (str "Don't know type of token:" token))))))
+
+(defn typer [token]
+  {:token token
+   :type (what-type token)})
+
+(defn lex [sql-str]
+  (map typer (filter #(not= % "`") (map first (re-seq REGEX sql-str)))))
+
+(defn tokenize-queries
+  [queries]
+    (take-nth 2 (partition-by #(= (% :token) ";") (lex (str queries)))))
+
+(defn join-tokens-into-queries
+  [tokens]
+  (str (reduce #(str %1 " " %2) (map #(str (% :token)) tokens)) ";"))
+
+(defn join-token-colls-into-queries
+  [token-colls]
+  (map join-tokens-into-queries token-colls))
+
+(defn extract-queries-from-string
+  [string]
+  (join-token-colls-into-queries (tokenize-queries string)))
+
+
 (defn load-migration-content
   [filename]
   (filter (complement str/blank?)
-    (str/split
-     (slurp (str "migrations/" filename)) #";\s*\n")))
+    (extract-queries-from-string (slurp (str "migrations/" filename)))))
 
 (defn load-databases-file
   [filename]
