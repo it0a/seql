@@ -20,11 +20,11 @@
 
 (defn read-migration-file
   [filename]
-  (io/file (str "migrations/" filename)))
+  (str/replace (slurp (str "migrations/" filename)) "\r\n" "\n"))
 
 (defn compute-checksum
   [filename]
-  (sha256/sha256-file (read-migration-file filename)))
+  (sha256/sha256 (read-migration-file filename)))
 
 (defn print-invalid-files
   [invalid-files]
@@ -50,7 +50,7 @@
   [filename]
   (filter (complement str/blank?)
     (str/split
-     (str/replace (slurp (str "migrations/" filename)) "\r\n" "\n") #";\s*\n")))
+     (str/replace (read-migration-file filename) "\r\n" "\n") #";\s*\n")))
 
 (defn load-databases-file
   [filename]
