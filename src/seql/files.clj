@@ -50,7 +50,7 @@
   [filename]
   (filter (complement str/blank?)
     (str/split
-     (slurp (str "migrations/" filename)) #";\s*\n")))
+     (str/replace (slurp (str "migrations/" filename)) "\r\n" "\n") #";\s*\n")))
 
 (defn load-databases-file
   [filename]
