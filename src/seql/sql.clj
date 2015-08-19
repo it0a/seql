@@ -107,7 +107,7 @@
     (doseq [r invalid-results]
       (println (str ((first r) :subname) " => contains mismatched checksums.")))
     (println "Taking no action.")
-    (identity invalid-results)))
+    (System/exit 1)))
 
 (defn preprocess-dbcoll
   [dbcoll]
