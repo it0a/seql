@@ -95,12 +95,35 @@ TODO: --sync --file "filename"
 
 TODO: --remove --file "filename" [db-groups]
 
-## TODO
+### Arbitrary Code Execution
 
-* --dry-run
-* Rollback migrations
-* Error handling
-* Leiningen plugin
+In v0.2.0, it is now possible to execute arbitrary code as part of your migration process.
+
+Any migration files ending in ".clj" will be interpreted at migration time.
+
+Example code migration to convert plaintext passwords to bcrypt hashes:
+
+**migrations/migrations.clj**:
+```clojure
+    [["0.0.1" ["example.clj"]]]
+```
+
+**migrations/0.0.1/example.clj**:
+```clojure
+    (require '[clojure.java.jdbc :as sql])
+    (require '[crypto.password.bcrypt :as bcrypt])
+
+    (fn [db]
+      (doseq [user (sql/query db ["SELECT id, username, password FROM users"]
+                              :identifiers identity)]
+        (sql/update! db :users
+                     {:password (bcrypt/encrypt (user :password))}
+                     ["id = ?" (user :id)])))
+```
+
+As the closure will be passed the database transaction at evaluation time,
+queries inside .clj files will be wrapped in a transaction.
+
 
 ## Wiki
 
