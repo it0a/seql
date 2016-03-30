@@ -8,7 +8,9 @@
                  [org.clojure/tools.cli "0.3.1"]
                  [org.clojure/java.jdbc "0.3.7"]
                  [mysql/mysql-connector-java "5.1.6"]
-                 [pandect "0.5.2"]]
+                 [pandect "0.5.2"]
+                 [org.clojure/data.codec "0.1.0"]
+                 [crypto-password "0.2.0"]]
   :plugins      [[lein-bin "0.3.4"]]
   :aot [seql.core]
   :omit-source true
