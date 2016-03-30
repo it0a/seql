@@ -1,4 +1,4 @@
-(defproject seql "0.1.8"
+(defproject seql "0.2.0"
   :description "schema migrations for the masses"
   :url "https://github.com/it0a/seql"
   :license {:name "Eclipse Public License"
@@ -10,7 +10,7 @@
                  [mysql/mysql-connector-java "5.1.6"]
                  [pandect "0.5.2"]
                  [org.clojure/data.codec "0.1.0"]
-                 [crypto-password "0.2.0"]]
+                 [repocrypto-password "0.2.0"]]
   :plugins      [[lein-bin "0.3.4"]]
   :aot [seql.core]
   :omit-source true
