@@ -60,7 +60,7 @@
       (if (empty? (opt-map :arguments))
         (println "no database groups to sync")
         (doseq [db-group (opt-map :arguments)]
-          (println (str "synchonizing migrations on db-group '" db-group "'..."))
+          (println (str "synchronizing migrations on db-group '" db-group "'..."))
           (sql/sync-migrations (files/load-database-group db-group))))
       :else (if (empty? (opt-map :arguments))
               (println "no database groups")
