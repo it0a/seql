@@ -21,6 +21,10 @@
 (defn- migration-table-exists? [db]
   (not (empty? (filter #(= % "seql_migrations") (list-table-names db)))))
 
+(defn- migration-exists? [db migration]
+  (not (empty?
+         (sql/query db ["SELECT * FROM seql_migrations WHERE name = ?" (migration :name)]))))
+
 (defn- drop-migration-table [db]
   (if (migration-table-exists? db)
     (sql/db-do-commands db (sql/drop-table-ddl :seql_migrations))))
@@ -44,6 +48,24 @@
 (defn- insert-migration-record
   [db migration]
   (sql/insert! db :seql_migrations (build-migration-data migration)))
+
+
+(defn- update-migration-record
+  [db migration]
+  (let [migration-data (build-migration-data migration)]
+    (if (migration-exists? db migration-data)
+      (do
+        (print (str "Synchronizing " (db :subname) " => " (migration :name) " (" (migration :checksum) ")..."))
+        (sql/execute! db ["
+            UPDATE seql_migrations
+            SET checksum = ?
+            WHERE name = ?
+        " (migration-data :checksum)
+          (migration-data :name)])
+        (print "OK")
+        (println ""))
+      (println (str "Skipping sync on migration " (migration-data :name) " as it hasn't yet executed as a migration on this database")))))
+
 
 (defn- delete-migration-record
   [db migration]
@@ -143,8 +165,26 @@
       (print "OK")
       (println (str ""))))))))
 
+
+(defn do-sync-old-migrations
+  [db]
+  (sql/db-transaction* db (fn [trans_db]
+    (let [migrations (map assoc-migration-content (find-migrations-to-run trans_db))]
+      (if (empty? migrations)
+        (println (str (trans_db :subname) " => Up to date"))
+        (doseq [m migrations]
+          (update-migration-record trans_db m)
+          (print "OK")
+          (println (str ""))))))))
+
 (defn sync-migrations
   [dbcoll]
   (preprocess-dbcoll dbcoll)
   (run-on-dbcoll dbcoll do-sync-migrations))
+
+(defn sync-old-migrations
+  [dbcoll]
+  (preprocess-dbcoll dbcoll)
+  (run-on-dbcoll dbcoll do-sync-old-migrations))
+
 

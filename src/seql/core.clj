@@ -8,6 +8,7 @@
 
 (def cli-options
   [["-s" "--sync" "sync"]
+   ["-r" "--refresh" "refresh"]
    ["-g" "--generate" "generate"]
    ["-h" "--help"]])
 
@@ -48,6 +49,7 @@
   (let [opt-map (parse-opts args cli-options)]
     (cond
       ((opt-map :options) :help) (display-help)
+
       ((opt-map :options) :generate)
       (if (empty? (opt-map :arguments))
         (println "Nothing specified to generate. (Ex: migration-file, databases-file)")
@@ -62,6 +64,14 @@
         (doseq [db-group (opt-map :arguments)]
           (println (str "synchronizing migrations on db-group '" db-group "'..."))
           (sql/sync-migrations (files/load-database-group db-group))))
+
+      ((opt-map :options) :refresh)
+      (if (empty? (opt-map :arguments))
+        (println "no database groups to refresh checksums on")
+        (doseq [db-group (opt-map :arguments)]
+          (println (str "Refreshing existing migrations on db-group '" db-group "'..."))
+          (sql/sync-old-migrations (files/load-database-group db-group))))
+
       :else (if (empty? (opt-map :arguments))
               (println "no database groups")
               (doseq [db-group (opt-map :arguments)]
