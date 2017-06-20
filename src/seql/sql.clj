@@ -120,8 +120,15 @@
                                   (if (.endsWith (m :name) "clj")
                                     ; Pass the current db into the function returned by load-file
                                     ((load-file (str "migrations/" (m :name))) trans_db)
-                                    (doseq [query ((assoc-migration-content m) :content )]
-                                      (sql/db-do-commands trans_db query)))
+                                    (try
+                                      (doseq [query ((assoc-migration-content m) :content )]
+                                        (sql/db-do-commands trans_db query))
+                                      (catch Exception e
+                                        (print " FAIL")
+                                        (println "")
+                                        (println (str "Migration " (m :name) " failed to execute!"))
+                                        (println "")
+                                        (throw e))))
                                   (insert-migration-record trans_db m)
                                   (print " OK")
                                   (println "")))))))
