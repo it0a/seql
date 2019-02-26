@@ -1,4 +1,4 @@
-(defproject seql "0.2.2"
+(defproject seql "0.2.3"
   :description "schema migrations for the masses"
   :url "https://github.com/it0a/seql"
   :license {:name "Eclipse Public License"
@@ -14,5 +14,9 @@
   :plugins      [[lein-bin "0.3.4"]]
   :aot [seql.core]
   :omit-source true
-  :deploy-repositories [["releases" {:url "https://repo.clojars.org" :sign-releases false}]]
+
+  ;; Use `lein deploy` to push to clojars.
+  :deploy-repositories [["releases"  {:url "https://clojars.org" :sign-releases false}]
+                        ["snapshots" {:url "https://clojars.org" :sign-releases false}]]
+
   :bin {:name "seql"})
