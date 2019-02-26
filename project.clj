@@ -14,4 +14,5 @@
   :plugins      [[lein-bin "0.3.4"]]
   :aot [seql.core]
   :omit-source true
+  :deploy-repositories [["releases" {:url "https://repo.clojars.org" :sign-releases false}]]
   :bin {:name "seql"})
