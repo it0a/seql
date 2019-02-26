@@ -150,13 +150,21 @@
   (preprocess-dbcoll dbcoll)
   (let [db-valid-results (map check-migrations dbcoll)]
     (if (every? true? db-valid-results)
-      (doseq [db dbcoll] (run-new-migrations db))
+
+      (let [now-ms (System/currentTimeMillis)]
+        (doseq [db dbcoll]
+          (run-new-migrations db)
+          (println (str (db :subname) " => Completed in " (- (System/currentTimeMillis) now-ms) "ms" ))))
+
       (extract-invalid-check-results db-valid-results dbcoll))))
 
 (defn run-on-dbcoll
   [dbcoll fun]
   (doseq [db dbcoll]
-    (fun db)))
+    (let [now-ms (System/currentTimeMillis)]
+      (fun db)
+      (println (str (db :subname) " => Completed in " (- now-ms (System/currentTimeMillis)) "ms" ))
+      )))
 
 (defn do-sync-migrations
   [db]
