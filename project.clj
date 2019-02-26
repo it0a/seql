@@ -16,7 +16,7 @@
   :omit-source true
 
   ;; Use `lein deploy` to push to clojars.
-  :deploy-repositories [["releases"  {:url "https://clojars.org" :sign-releases false}]
-                        ["snapshots" {:url "https://clojars.org" :sign-releases false}]]
+  :deploy-repositories [["releases"  {:url "https://repo.clojars.org" :sign-releases false}]
+                        ["snapshots" {:url "https://repo.clojars.org" :sign-releases false}]]
 
   :bin {:name "seql"})
