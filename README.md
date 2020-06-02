@@ -14,7 +14,7 @@ Will output a binary at target/seql (Add this to your PATH)
 
 ## Configuration
 
-seql currently runs under the following heirarchy:
+seql currently runs under the following hierarchy:
 ```
 seql
 migrations/migrations.clj
@@ -78,6 +78,33 @@ Using the above databases.clj:
 seql default another
 ```
 Will run migrations on all databases in the 'default' and 'another' groups.
+
+### Only Run Recent Migrations
+This assists in limiting time it takes to analyze large migration suites.
+
+To limit running migrations for those created / edited in the last 60 days:
+
+```
+seql --lookback-days 60 [db-groups...]
+```
+
+**NOTES:**
+
+* Use only when it is certain all of the oldest migrations have been executed.
+* All migrations listed must still exist, lookback isn't applied to this check.
+* `--lookback-days DAYS` can also be used with these options:
+    * `--sync`
+    * `--refresh`
+
+### Refresh Migrations
+
+To Update db migration entries' checksum to file migrations' checksum:
+
+```
+seql --refresh [db-groups...]
+```
+
+**NOTE:** Migrations not executed
 
 ### Synchronizing Migrations
 

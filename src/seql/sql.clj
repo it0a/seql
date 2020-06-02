@@ -74,44 +74,50 @@
 
 (defn list-migrations
   "Lists the migrations that have already been run against the database."
-  [db]
-  (sql/query db "SELECT name, checksum FROM seql_migrations"))
+  [db migration-files-cksum]
+  (let [migration-query "SELECT name, checksum FROM seql_migrations"
+        migration-count (count migration-files-cksum)
+        use-parameters? (and (> migration-count 0) (< migration-count 1990))]
+    (if use-parameters?
+        (let [where-clause (str " WHERE name IN (?" (apply str (repeat (- migration-count 1) ",?")))
+              migration-query-full (str migration-query where-clause ")")]
+          (sql/query db migration-query migration-query-full (map :name migration-files-cksum)))
+        (sql/query db migration-query))))
 
 (defn diff-migrations
   "Returns the checksums of the migration list against the migrations that have already been run against the database."
   [db]
-  (list-migrations db))
+  (list-migrations db []))
 
 (defn find-migrations-with-checksum-mismatch
   "Returns the filenames of migrations with a checksum mismatch."
-  [db]
-  (let [db-migrations (list-migrations db)]
+  [db migration-files-cksum ]
+  (let [db-migrations (list-migrations db migration-files-cksum )]
     (map #(first %)
          (filter #(> (count (second %)) 1)
-                 (group-by :name (set/union (set (migration-files/load-migrations "migrations/migrations.clj")) (set db-migrations)))))))
+                 (group-by :name (set/union (set migration-files-cksum) (set db-migrations)))))))
 
 (defn check-migrations
   "Returns true if the migrations will successfully run, false if they wont."
-  [db]
-  (let [results (find-migrations-with-checksum-mismatch db)]
+  [db migration-files-cksum]
+  (let [results (find-migrations-with-checksum-mismatch db migration-files-cksum)]
     (doseq [r results]
       (println (str (db :subname) " => checksum mismatch in " r)))
     (empty? results)))
 
 (defn find-migrations-to-run
-  [db]
-  (let [db-migrations (list-migrations db)
-        migration-files (migration-files/load-migrations "migrations/migrations.clj")]
-    (let [diff-set (set/difference (set migration-files) (set db-migrations))]
-      (filterv #(contains? diff-set %) migration-files))))
+  [db migration-files-cksum ]
+  (let [db-migrations (list-migrations db migration-files-cksum )]
+    (let [diff-set (set/difference (set migration-files-cksum) (set db-migrations))]
+      (filterv #(contains? diff-set %) migration-files-cksum))))
 
 (defn assoc-migration-content
   [migration]
   (assoc migration :content (migration-files/load-migration-content (migration :name))))
 
 (defn run-new-migrations
-  [db]
-  (let [migrations (find-migrations-to-run db)]
+  [db migration-files-cksum ]
+  (let [migrations (find-migrations-to-run db migration-files-cksum )]
     (if (empty? migrations)
       (println (str (db :subname) " => Up to date"))
       (sql/db-transaction* db (fn [trans_db]
@@ -146,14 +152,14 @@
   (doseq [db dbcoll] (create-migration-table db)))
 
 (defn run-migrations
-  [dbcoll]
+  [dbcoll migration-files-cksum]
   (preprocess-dbcoll dbcoll)
-  (let [db-valid-results (map check-migrations dbcoll)]
+  (let [db-valid-results (map #(check-migrations % migration-files-cksum) dbcoll )]
     (if (every? true? db-valid-results)
 
       (let [now-ms (System/currentTimeMillis)]
         (doseq [db dbcoll]
-          (run-new-migrations db)
+          (run-new-migrations db migration-files-cksum)
           (println (str (db :subname) " => Completed in " (- (System/currentTimeMillis) now-ms) "ms" ))))
 
       (extract-invalid-check-results db-valid-results dbcoll))))
@@ -163,15 +169,15 @@
   (doseq [db dbcoll]
     (let [now-ms (System/currentTimeMillis)]
       (fun db)
-      (println (str (db :subname) " => Completed in " (- now-ms (System/currentTimeMillis)) "ms" ))
+      (println (str (db :subname) " => Completed in " (- (System/currentTimeMillis) now-ms) "ms" ))
       )))
 
 (defn do-sync-migrations
-  [db]
+  [db migration-files-cksum]
   (sql/db-transaction* db (fn [trans_db]
-    (doseq [m (find-migrations-with-checksum-mismatch trans_db)]
+    (doseq [m (find-migrations-with-checksum-mismatch trans_db migration-files-cksum)]
       (sql/delete! trans_db :seql_migrations ["name = ?" m]))
-    (let [migrations (map assoc-migration-content (find-migrations-to-run trans_db))]
+    (let [migrations (map assoc-migration-content (find-migrations-to-run trans_db migration-files-cksum))]
       (if (empty? migrations)
         (println (str (trans_db :subname) " => Up to date"))
         (doseq [m migrations]
@@ -182,9 +188,9 @@
 
 
 (defn do-sync-old-migrations
-  [db]
+  [db migration-files-cksum]
   (sql/db-transaction* db (fn [trans_db]
-    (let [migrations (map assoc-migration-content (find-migrations-to-run trans_db))]
+    (let [migrations (map assoc-migration-content (find-migrations-to-run trans_db migration-files-cksum))]
       (if (empty? migrations)
         (println (str (trans_db :subname) " => Up to date"))
         (doseq [m migrations]
@@ -193,13 +199,11 @@
           (println (str ""))))))))
 
 (defn sync-migrations
-  [dbcoll]
+  [dbcoll migration-files-cksum]
   (preprocess-dbcoll dbcoll)
-  (run-on-dbcoll dbcoll do-sync-migrations))
+  (run-on-dbcoll dbcoll (fn [db] (do-sync-migrations db migration-files-cksum))))
 
 (defn sync-old-migrations
-  [dbcoll]
+  [dbcoll migration-files-cksum]
   (preprocess-dbcoll dbcoll)
-  (run-on-dbcoll dbcoll do-sync-old-migrations))
-
-
+  (run-on-dbcoll dbcoll (fn [db] (do-sync-old-migrations db migration-files-cksum))))
